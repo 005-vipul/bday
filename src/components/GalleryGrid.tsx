@@ -1,6 +1,32 @@
-import { useState, useRef } from 'react';
-import { useInView } from 'framer-motion';
+import { useState, useRef, useEffect } from 'react';
 import type { GalleryItem } from '../types/manifest';
+
+// ─── Lightweight native IntersectionObserver hook ────────────────────────────
+// Replaces framer-motion's useInView — zero extra overhead per item
+function useIsVisible(rootMargin = '600px'): [React.RefObject<HTMLDivElement | null>, boolean] {
+  const ref = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect(); // once visible, stop watching
+        }
+      },
+      { rootMargin }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [rootMargin]);
+
+  return [ref, isVisible];
+}
 
 // ─── Individual masonry item ──────────────────────────────────────────────────
 function MasonryItem({
@@ -12,9 +38,7 @@ function MasonryItem({
   index: number;
   onClick: (item: GalleryItem) => void;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
-  // Preload 600px before the item enters the viewport so it's ready when seen
-  const isInView = useInView(ref, { once: true, margin: '600px' });
+  const [ref, isVisible] = useIsVisible('600px');
   const [loaded, setLoaded] = useState(false);
   const [errored, setErrored] = useState(false);
 
@@ -33,14 +57,12 @@ function MasonryItem({
         borderRadius: '0.6rem',
         overflow: 'hidden',
         background: 'rgba(249,213,229,0.25)',
-        // subtle entrance: only opacity, no y-shift (cheaper on mobile GPU)
         opacity: loaded || isVideo ? 1 : 0.92,
         transition: 'opacity 0.35s ease',
-        transform: 'translateZ(0)',
       }}
     >
       {/* Shimmer placeholder — shown until image loads */}
-      {!loaded && !errored && (
+      {!loaded && !isVideo && !errored && (
         <div
           aria-hidden="true"
           style={{
@@ -55,40 +77,26 @@ function MasonryItem({
         />
       )}
 
-      {/* Video */}
-      {isInView && isVideo && (
-        <div style={{ position: 'relative' }}>
-          {/* Poster / thumbnail fallback for videos */}
-          {item.poster ? (
-            <img
-              src={item.poster}
-              alt={item.caption}
-              loading="lazy"
-              decoding="async"
-              style={{ width: '100%', height: 'auto', display: 'block' }}
-            />
-          ) : (
-            <video
-              src={safeUrl}
-              autoPlay
-              loop
-              muted
-              playsInline
-              style={{ width: '100%', height: 'auto', display: 'block' }}
-            />
-          )}
-        </div>
+      {/* Video — autoplay muted loop */}
+      {isVisible && isVideo && (
+        <video
+          src={safeUrl}
+          autoPlay
+          loop
+          muted
+          playsInline
+          style={{ width: '100%', height: 'auto', display: 'block' }}
+        />
       )}
 
       {/* Image — only starts loading once in (extended) viewport */}
-      {isInView && !isVideo && !errored && (
+      {isVisible && !isVideo && !errored && (
         <img
           src={safeUrl}
           alt={item.caption || `Memory ${index + 1}`}
           loading="lazy"
           decoding="async"
-          // Let browser prioritize first 6 items
-          fetchPriority={index < 6 ? 'high' : 'auto'}
+          fetchPriority={index < 8 ? 'high' : 'auto'}
           onLoad={() => setLoaded(true)}
           onError={() => setErrored(true)}
           style={{
@@ -116,8 +124,6 @@ function MasonryItem({
           🖼️
         </div>
       )}
-
-      {/* Caption removed as requested */}
     </div>
   );
 }
@@ -131,20 +137,12 @@ export default function GalleryGrid({
   onItemClick: (item: GalleryItem) => void;
 }) {
   return (
-    <>
-      <style>{`
-        @keyframes shimmerLoad {
-          0%   { background-position: -200% 0; }
-          100% { background-position:  200% 0; }
-        }
-      `}</style>
-      <div className="gallery-masonry">
-        {items.map((item, i) => (
-          <div key={item.id} className="gallery-item">
-            <MasonryItem item={item} index={i} onClick={onItemClick} />
-          </div>
-        ))}
-      </div>
-    </>
+    <div className="gallery-masonry">
+      {items.map((item, i) => (
+        <div key={item.id} className="gallery-item">
+          <MasonryItem item={item} index={i} onClick={onItemClick} />
+        </div>
+      ))}
+    </div>
   );
 }

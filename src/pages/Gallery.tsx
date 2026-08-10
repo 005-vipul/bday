@@ -5,7 +5,7 @@ import Lightbox from '../components/Lightbox';
 
 export default function Gallery() {
   const [manifest, setManifest] = useState<Manifest | null>(null);
-  const [visibleCount, setVisibleCount] = useState(30);
+  const [visibleCount, setVisibleCount] = useState(48);
   const [lightboxItem, setLightboxItem] = useState<GalleryItem | null>(null);
 
   // Fetch manifest
@@ -23,18 +23,26 @@ export default function Gallery() {
     [allItems, visibleCount]
   );
 
-  // Passive infinite-scroll listener
+  // RAF-throttled infinite-scroll listener — no jank during fast scrolling
   useEffect(() => {
+    let rafId: number;
     const handleScroll = () => {
-      if (
-        window.innerHeight + window.scrollY >=
-        document.body.offsetHeight - 800
-      ) {
-        setVisibleCount(prev => Math.min(prev + 30, allItems.length));
-      }
+      if (rafId) return; // already queued
+      rafId = requestAnimationFrame(() => {
+        rafId = 0;
+        if (
+          window.innerHeight + window.scrollY >=
+          document.body.offsetHeight - 900
+        ) {
+          setVisibleCount(prev => Math.min(prev + 48, allItems.length));
+        }
+      });
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
   }, [allItems.length]);
 
   // Lightbox navigation (through the full unsliced list)

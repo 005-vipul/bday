@@ -110,19 +110,35 @@ body {
 .gallery-masonry {
   column-count: 2;
   column-gap: 0.75rem;
-  padding: 0.75rem;
+  columns: 2;
+  column-gap: 0.6rem;
+  padding: 0 0.6rem;
   width: 100%;
   max-width: 1300px;
   margin: 0 auto;
 }
+
 @media (min-width: 640px) {
-  .gallery-masonry { column-count: 3; }
+  .gallery-masonry {
+    columns: 3;
+  }
 }
+
 @media (min-width: 1024px) {
-  .gallery-masonry { column-count: 4; }
+  .gallery-masonry {
+    columns: 4;
+    padding: 0 1.5rem;
+  }
 }
-@media (min-width: 1280px) {
-  .gallery-masonry { column-count: 5; }
+
+/* ─── Gallery performance: skip off-screen layout + paint entirely ────────── */
+.gallery-item {
+  /* Browser skips layout/paint for items outside viewport — huge fps win */
+  content-visibility: auto;
+  /* Stable estimated height so scroll bar doesn't jump */
+  contain-intrinsic-size: 0 260px;
+  /* Promote to own GPU layer only while loading */
+  transform: translateZ(0);
 }
 
 /* Hide scrollbar for tab bar */
@@ -138,6 +154,12 @@ body {
 @keyframes shimmerLoad {
   0%   { background-position: -200% 0; }
   100% { background-position:  200% 0; }
+}
+
+/* ─── Navbar responsive ──────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .navbar-desktop  { display: none !important; }
+  .navbar-hamburger { display: flex !important; }
 }
 
 /* ─── Reduce motion for accessibility + low-end devices ─────────────────── */

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 const navLinks = [
   { to: '/',         label: 'Home',      emoji: '🏡' },
   { to: '/story',    label: 'Our Story', emoji: '📜' },
-  { to: '/gallery',  label: 'Gallery',   emoji: '🎞️' },
+  { to: '/gallery',  label: 'Gallery',   emoji: '🎨' },
   { to: '/letter',   label: 'Letter',    emoji: '💌' },
 ];
 
@@ -175,9 +175,6 @@ export default function Navbar() {
           ))}
         </ul>
       </div>
-
-      {/* Responsive styles via embedded style tag */}
-      <style>{`
-        @media (max-width: 640px) {
-          .navbar-desktop { display: none !important; }
-          .navbar-hamburger { display: flex !imp
+    </header>
+  );
+}
