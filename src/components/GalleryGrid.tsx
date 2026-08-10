@@ -2,25 +2,22 @@ import { useState, useRef, useEffect } from 'react';
 import type { GalleryItem } from '../types/manifest';
 
 // ─── Lightweight native IntersectionObserver hook ────────────────────────────
-// Replaces framer-motion's useInView — zero extra overhead per item
-function useIsVisible(rootMargin = '600px'): [React.RefObject<HTMLDivElement | null>, boolean] {
+function useIsVisible(rootMargin = '700px'): [React.RefObject<HTMLDivElement | null>, boolean] {
   const ref = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsVisible(true);
-          observer.disconnect(); // once visible, stop watching
+          observer.disconnect();
         }
       },
       { rootMargin }
     );
-
     observer.observe(el);
     return () => observer.disconnect();
   }, [rootMargin]);
@@ -38,46 +35,48 @@ function MasonryItem({
   index: number;
   onClick: (item: GalleryItem) => void;
 }) {
-  const [ref, isVisible] = useIsVisible('600px');
+  const [ref, isVisible] = useIsVisible('700px');
   const [loaded, setLoaded] = useState(false);
   const [errored, setErrored] = useState(false);
 
   const safeUrl = item.url || item.thumb;
   const isVideo = item.type === 'video';
 
+  // Aspect ratio: portrait for photos (3:4), vertical for videos (9:16)
+  const aspectRatio = isVideo ? '9/16' : '3/4';
+
   return (
     <div
       ref={ref}
       onClick={() => onClick(item)}
       style={{
-        marginBottom: '0.6rem',
+        marginBottom: '0.5rem',
         breakInside: 'avoid',
         cursor: 'pointer',
         position: 'relative',
-        borderRadius: '0.6rem',
+        borderRadius: '0.75rem',
         overflow: 'hidden',
-        background: 'rgba(249,213,229,0.25)',
-        opacity: loaded || isVideo ? 1 : 0.92,
-        transition: 'opacity 0.35s ease',
+        // Fixed aspect ratio = zero layout shift, shimmer fills perfectly
+        aspectRatio,
+        background: '#f5dce8',
       }}
     >
-      {/* Shimmer placeholder — shown until image loads */}
-      {!loaded && !isVideo && !errored && (
+      {/* Shimmer — fills the full container since it's now aspect-ratio sized */}
+      {!loaded && !errored && (
         <div
           aria-hidden="true"
           style={{
             position: 'absolute',
             inset: 0,
-            minHeight: 180,
             background:
-              'linear-gradient(90deg, rgba(249,213,229,0.4) 0%, rgba(232,213,245,0.7) 50%, rgba(249,213,229,0.4) 100%)',
+              'linear-gradient(90deg,rgba(249,213,229,0.5) 0%,rgba(232,213,245,0.85) 50%,rgba(249,213,229,0.5) 100%)',
             backgroundSize: '200% 100%',
-            animation: 'shimmerLoad 1.4s ease infinite',
+            animation: 'shimmerLoad 1.2s ease infinite',
           }}
         />
       )}
 
-      {/* Video — autoplay muted loop */}
+      {/* Video — autoplay, muted, looping */}
       {isVisible && isVideo && (
         <video
           src={safeUrl}
@@ -85,11 +84,20 @@ function MasonryItem({
           loop
           muted
           playsInline
-          style={{ width: '100%', height: 'auto', display: 'block' }}
+          onLoadedData={() => setLoaded(true)}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            opacity: loaded ? 1 : 0,
+            transition: 'opacity 0.45s ease',
+          }}
         />
       )}
 
-      {/* Image — only starts loading once in (extended) viewport */}
+      {/* Image */}
       {isVisible && !isVideo && !errored && (
         <img
           src={safeUrl}
@@ -100,11 +108,14 @@ function MasonryItem({
           onLoad={() => setLoaded(true)}
           onError={() => setErrored(true)}
           style={{
+            position: 'absolute',
+            inset: 0,
             width: '100%',
-            height: 'auto',
-            display: 'block',
+            height: '100%',
+            // cover crops slightly but ensures no white borders or layout jumps
+            objectFit: 'cover',
             opacity: loaded ? 1 : 0,
-            transition: 'opacity 0.4s ease',
+            transition: 'opacity 0.45s ease',
           }}
         />
       )}
@@ -113,12 +124,13 @@ function MasonryItem({
       {errored && (
         <div
           style={{
-            minHeight: 120,
+            position: 'absolute',
+            inset: 0,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '1.5rem',
-            opacity: 0.4,
+            fontSize: '1.8rem',
+            opacity: 0.35,
           }}
         >
           🖼️

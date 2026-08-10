@@ -56,6 +56,10 @@ body {
   color: var(--color-ink);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Smooth momentum scroll on iOS */
+  -webkit-overflow-scrolling: touch;
+  /* Prevent pull-to-refresh rubber-band from fighting scroll */
+  overscroll-behavior-y: contain;
 }
 
 /* ─── Typography Utilities ────────────────────────────────────────────────── */
@@ -136,9 +140,9 @@ body {
   /* Browser skips layout/paint for items outside viewport — huge fps win */
   content-visibility: auto;
   /* Stable estimated height so scroll bar doesn't jump */
-  contain-intrinsic-size: 0 260px;
-  /* Promote to own GPU layer only while loading */
-  transform: translateZ(0);
+  contain-intrinsic-size: 0 300px;
+  /* Isolate each item's rendering so changes don't ripple through the tree */
+  contain: layout style paint;
 }
 
 /* Hide scrollbar for tab bar */
