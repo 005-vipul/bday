@@ -1,0 +1,150 @@
+@import "tailwindcss";
+
+/* ─── Custom Theme Tokens ─────────────────────────────────────────────────── */
+@theme {
+  /* Romantic warm palette */
+  --color-rose-blush:    #f9d5e5;
+  --color-rose-petal:    #f4a7c3;
+  --color-rose-deep:     #e8759a;
+  --color-rose-rich:     #d14b7e;
+  --color-plum-light:    #e8d5f5;
+  --color-plum-mid:      #c8a4e8;
+  --color-plum-deep:     #9b59b6;
+  --color-plum-rich:     #7b3fa0;
+  --color-gold-pale:     #fef3c7;
+  --color-gold-warm:     #fcd34d;
+  --color-gold-deep:     #f59e0b;
+  --color-gold-rich:     #d97706;
+  --color-cream:         #fdfaf6;
+  --color-warm-white:    #fff8f0;
+  --color-ink:           #3d1a2e;
+  --color-ink-light:     #6b3a52;
+
+  /* Gradients */
+  --gradient-hero: linear-gradient(135deg, #fce4ec 0%, #e8d5f5 40%, #fef3c7 100%);
+  --gradient-card: linear-gradient(135deg, rgba(249,213,229,0.6) 0%, rgba(232,213,245,0.6) 100%);
+  --gradient-nav:  linear-gradient(90deg, rgba(253,250,246,0.85) 0%, rgba(248,236,255,0.85) 100%);
+
+  /* Typography */
+  --font-heading: "Dancing Script", cursive;
+  --font-body:    "Inter", sans-serif;
+
+  /* Spacing / radius */
+  --radius-card:  1.5rem;
+  --radius-pill:  9999px;
+
+  /* Shadows */
+  --shadow-soft:  0 4px 24px rgba(209,75,126,0.10);
+  --shadow-glow:  0 0 40px rgba(209,75,126,0.18);
+}
+
+/* ─── Base Styles ─────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--gradient-hero);
+  min-height: 100dvh;
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Typography Utilities ────────────────────────────────────────────────── */
+.font-heading {
+  font-family: var(--font-heading);
+}
+
+.font-body {
+  font-family: var(--font-body);
+}
+
+/* ─── Gradient Text ───────────────────────────────────────────────────────── */
+.gradient-text {
+  background: linear-gradient(135deg, var(--color-rose-rich) 0%, var(--color-plum-deep) 50%, var(--color-gold-deep) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── Glass Card ──────────────────────────────────────────────────────────── */
+.glass-card {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
+}
+
+/* ─── Page Wrapper ────────────────────────────────────────────────────────── */
+.page-wrapper {
+  min-height: 100dvh;
+  padding-top: 4.5rem; /* below fixed navbar */
+}
+
+/* ─── Scrollbar ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-warm-white);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-rose-petal);
+  border-radius: var(--radius-pill);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-rose-deep);
+}
+
+/* ─── Gallery Masonry Grid ────────────────────────────────────────────────── */
+.gallery-masonry {
+  column-count: 2;
+  column-gap: 0.75rem;
+  padding: 0.75rem;
+  width: 100%;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+@media (min-width: 640px) {
+  .gallery-masonry { column-count: 3; }
+}
+@media (min-width: 1024px) {
+  .gallery-masonry { column-count: 4; }
+}
+@media (min-width: 1280px) {
+  .gallery-masonry { column-count: 5; }
+}
+
+/* Hide scrollbar for tab bar */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ─── Shimmer / skeleton animation ───────────────────────────────────────── */
+@keyframes shimmerLoad {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+/* ─── Reduce motion for accessibility + low-end devices ─────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
