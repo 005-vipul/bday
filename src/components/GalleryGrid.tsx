@@ -42,36 +42,34 @@ function MasonryItem({
   const safeUrl = item.url || item.thumb;
   const isVideo = item.type === 'video';
 
-  // Aspect ratio: portrait for photos (3:4), vertical for videos (9:16)
-  const aspectRatio = isVideo ? '9/16' : '3/4';
-
   return (
     <div
       ref={ref}
       onClick={() => onClick(item)}
       style={{
-        marginBottom: '0.5rem',
+        marginBottom: '0.6rem',
         breakInside: 'avoid',
         cursor: 'pointer',
         position: 'relative',
-        borderRadius: '0.75rem',
+        borderRadius: '0.6rem',
         overflow: 'hidden',
-        // Fixed aspect ratio = zero layout shift, shimmer fills perfectly
-        aspectRatio,
-        background: '#f5dce8',
+        background: 'rgba(249,213,229,0.25)',
+        opacity: loaded || isVideo ? 1 : 0.92,
+        transition: 'opacity 0.35s ease',
       }}
     >
-      {/* Shimmer — fills the full container since it's now aspect-ratio sized */}
-      {!loaded && !errored && (
+      {/* Shimmer placeholder — shown until image loads */}
+      {!loaded && !isVideo && !errored && (
         <div
           aria-hidden="true"
           style={{
             position: 'absolute',
             inset: 0,
+            minHeight: 180,
             background:
-              'linear-gradient(90deg,rgba(249,213,229,0.5) 0%,rgba(232,213,245,0.85) 50%,rgba(249,213,229,0.5) 100%)',
+              'linear-gradient(90deg, rgba(249,213,229,0.4) 0%, rgba(232,213,245,0.7) 50%, rgba(249,213,229,0.4) 100%)',
             backgroundSize: '200% 100%',
-            animation: 'shimmerLoad 1.2s ease infinite',
+            animation: 'shimmerLoad 1.4s ease infinite',
           }}
         />
       )}
@@ -85,19 +83,15 @@ function MasonryItem({
           muted
           playsInline
           onLoadedData={() => setLoaded(true)}
-          style={{
-            position: 'absolute',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            opacity: loaded ? 1 : 0,
-            transition: 'opacity 0.45s ease',
+          style={{ 
+            width: '100%', 
+            height: 'auto', 
+            display: 'block' 
           }}
         />
       )}
 
-      {/* Image */}
+      {/* Image — original intrinsic height */}
       {isVisible && !isVideo && !errored && (
         <img
           src={safeUrl}
@@ -108,14 +102,11 @@ function MasonryItem({
           onLoad={() => setLoaded(true)}
           onError={() => setErrored(true)}
           style={{
-            position: 'absolute',
-            inset: 0,
             width: '100%',
-            height: '100%',
-            // cover crops slightly but ensures no white borders or layout jumps
-            objectFit: 'cover',
+            height: 'auto',
+            display: 'block',
             opacity: loaded ? 1 : 0,
-            transition: 'opacity 0.45s ease',
+            transition: 'opacity 0.4s ease',
           }}
         />
       )}
@@ -124,13 +115,12 @@ function MasonryItem({
       {errored && (
         <div
           style={{
-            position: 'absolute',
-            inset: 0,
+            minHeight: 120,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '1.8rem',
-            opacity: 0.35,
+            fontSize: '1.5rem',
+            opacity: 0.4,
           }}
         >
           🖼️
